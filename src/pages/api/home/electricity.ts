@@ -8,7 +8,7 @@ function startTimeout() {
   if (timeout) clearTimeout(timeout);
 
   timeout = setTimeout(async () => {
-    const NewElectricityStatus = await prisma.home.update({
+    await prisma.home.update({
       where: {
         id: "819c8269-f307-4d18-9ea9-4f2a9b2f1d03",
       },

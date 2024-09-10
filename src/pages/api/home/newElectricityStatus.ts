@@ -1,6 +1,31 @@
 import { prisma } from "@/lib/db";
 import { NextApiRequest, NextApiResponse } from "next";
 import { clearTimeout } from "timers";
+import Cors from "cors";
+
+const cors = Cors({
+  methods: ["POST", "HEAD"],
+});
+
+function runMiddleware(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  fn: (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    callback: (result: Error | void) => void
+  ) => void
+) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result: Error | void) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+
+      return resolve(result);
+    });
+  });
+}
 
 let timeout: NodeJS.Timeout;
 
@@ -24,6 +49,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  runMiddleware(req, res, cors);
   startTimeout();
 
   const body = req.body as {

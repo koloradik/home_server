@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import { NextApiRequest, NextApiResponse } from "next";
-import { clearTimeout } from "timers";
 import Cors from "cors";
 
 const cors = Cors({
@@ -49,35 +48,41 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  runMiddleware(req, res, cors);
-  startTimeout();
+  try {
+    await runMiddleware(req, res, cors);
 
-  const body = req.body as {
-    id: string;
-    electricity: boolean;
-  };
+    startTimeout();
 
-  if (!body.id || typeof body.electricity !== "boolean") {
-    console.log("Ошибка: некорректные данные", body);
-    return res.status(400).json({ msg: "Bad request" });
+    const body = req.body as {
+      id: string;
+      electricity: boolean;
+    };
+
+    if (!body.id || typeof body.electricity !== "boolean") {
+      console.log("Ошибка: некорректные данные", body);
+      return res.status(400).json({ msg: "Bad request" });
+    }
+
+    const home = await prisma.home.findUnique({
+      where: { id: body.id },
+    });
+
+    if (!home) {
+      return res.status(404).json({ msg: "not found" });
+    }
+
+    const NewElectricityStatus = await prisma.home.update({
+      where: {
+        id: body.id,
+      },
+      data: {
+        electricity: body.electricity,
+      },
+    });
+
+    return res.status(200).json({ NewElectricityStatus });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
-
-  const home = await prisma.home.findUnique({
-    where: { id: body.id },
-  });
-
-  if (!home) {
-    return res.status(404).json({ msg: "not found" });
-  }
-
-  const NewElectricityStatus = await prisma.home.update({
-    where: {
-      id: body.id,
-    },
-    data: {
-      electricity: body.electricity,
-    },
-  });
-
-  return res.status(200).json({ NewElectricityStatus });
 }

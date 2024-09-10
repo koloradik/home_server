@@ -30,8 +30,13 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  runMiddleware(req, res, cors);
+  try {
+    await runMiddleware(req, res, cors);
 
-  const home = await prisma.home.findFirst();
-  return res.status(200).json({ home });
+    const home = await prisma.home.findFirst();
+    return res.status(200).json({ home });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 }

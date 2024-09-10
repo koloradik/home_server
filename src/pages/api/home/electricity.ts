@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import { NextApiRequest, NextApiResponse } from "next";
-import { clearTimeout } from "timers";
 
 export default async function handle(
   req: NextApiRequest,

@@ -29,8 +29,6 @@ function runMiddleware(
 let timeout: NodeJS.Timeout;
 
 function startTimeout() {
-  if (timeout) clearTimeout(timeout);
-
   timeout = setTimeout(async () => {
     await prisma.home.update({
       where: {
